@@ -1,5 +1,5 @@
 project:
-  title: "Research Template"
+  title: "SOC513 Research Project"
   output-dir: _products
   execute-dir: project
   pre-render: 
@@ -14,7 +14,7 @@ project:
     - "!bibliography/"
 
 author:
-  - name: Aaron Gullickson
+  - name: Nafisul Huq
     orcid: 0000-0001-7237-8131
     email: aarong@uoregon.edu
     url: https://aarongullickson.netlify.app/
