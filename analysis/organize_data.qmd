@@ -8,6 +8,19 @@ title: "Organize Data Notebook"
 library(here)
 source(here("utils","check_packages.R"))
 source(here("utils","functions.R"))
+
+library(readxl)
+library(tidyverse)
 ```
 
 This quarto doc is used to organize the data.
+
+```{r}
+acs2017 <- read_xlsx("data/data_raw/ACS/ACS2017.xlsx")
+acs2018 <- read_xlsx("data/data_raw/ACS/ACS2018.xlsx")
+acs2019 <- read_xlsx("data/data_raw/ACS/ACS2019.xlsx")
+
+
+violent2017<- read_xls("data/data_raw/crime/table_violent2017.xls, skip=3")
+violent2018<- read_xls("data/data_raw/crime/table_violent2018.xls, skip=3")
+violent2019<- read_xls("data/data_raw/crime/table_violent2019.xls, skip=3")
