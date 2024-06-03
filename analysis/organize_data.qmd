@@ -189,3 +189,38 @@ load(here("data","data_constructed","Crime2018.RData"))
 load(here("data","data_constructed","Crime2019.RData"))
 
 ```
+
+```{r}
+#combine three years data
+
+# First converting the columns to numeric values
+convert_columns_to_numeric <- function(df) {
+  df$violent_rate <- as.numeric(gsub("[^0-9.]", "", as.character(df$violent_rate)))
+  df$median_income <- as.numeric(gsub("[^0-9.]", "", as.character(df$median_income)))
+  df$unemploy_rate <- as.numeric(gsub("%", "", as.character(df$unemploy_rate)))
+  df$poverty_rate <- as.numeric(gsub("%", "", as.character(df$poverty_rate)))
+  df$lhs <- as.numeric(gsub("%", "", as.character(df$lhs)))
+  return(df)
+}
+
+# Applying the function to the datasets
+crime2017 <- convert_columns_to_numeric(crime2017)
+crime2018 <- convert_columns_to_numeric(crime2018)
+crime2019 <- convert_columns_to_numeric(crime2019)
+
+# Combine the three datasets
+combine_data <- bind_rows(crime2017,crime2018,crime2019)
+
+combine_data  <- combine_data %>%
+  group_by(State) %>%
+  summarise(violent_rate= mean(violent_rate, na.rm = TRUE),
+            poverty_rate = mean(poverty_rate,na.rm = TRUE),
+            unemploy_rate = mean(unemploy_rate, na.rm =TRUE),
+            lhs           = mean(lhs, na.rm =TRUE),
+            median_income = mean(median_income, na.rm= TRUE))
+
+
+save(combine_data, file = here("data","data_constructed","combine_data.RData"))
+
+load(here("data","data_constructed","combine_data.RData"))
+```
