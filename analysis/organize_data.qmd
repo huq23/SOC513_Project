@@ -11,11 +11,57 @@ source(here("utils","functions.R"))
 
 library(readxl)
 library(tidyverse)
-
+library(dplyr)
+library(glue)
+library(purrr)
+library(jsonlite)
+library(rvest)
 
 ```
 
 This quarto doc is used to organize the data.
+
+
+```{r}
+
+#replace this with your API key
+api_key <- "GTduvcsi2bUZ7EE3bqlYxR3nIRsdBWJvfy1ngJsJ"
+
+# choose starting and ending year
+start_year <- 2017
+end_year <- 2019
+
+url_base <- "https://api.usa.gov/crime/fbi/cde/estimate/state/{state_abbr}/{type}?from={start_year}&to={end_year}&API_KEY={api_key}"
+
+crime_data <- as_tibble(expand.grid(state_abbr=c(state.abb, "DC"),
+                                    type=c("violent-crime","property-crime")))
+
+urls <- crime_data |> glue_data(url_base)
+
+rates <- map_dfr(urls, function(url) {
+  results <- (curl::curl(url) %>% read_html() %>% html_nodes("p") %>%
+                html_text %>% fromJSON)$results[1] %>%
+    bind_rows()
+  return(results)
+})
+
+crime_data <- bind_cols(crime_data, rates)
+
+# now reshape
+crime_data <- crime_data |>
+  pivot_longer(cols = c(`2017`,`2018`,`2019`),
+               names_to = "year", values_to = "rate")
+
+# now reshape again to get violent and property on the same line
+crime_data <- crime_data |>
+  mutate(type = str_remove(type, "-crime")) |>
+  pivot_wider(id_cols = c(state_abbr, year), names_from = type, values_from = rate)
+
+
+```
+
+
+
 
 ```{r}
 acs2017 <- read_xlsx("data/data_raw/ACS/ACS2017.xlsx")
@@ -211,8 +257,8 @@ crime2019 <- convert_columns_to_numeric(crime2019)
 # Combine the three datasets
 combine_data <- bind_rows(crime2017,crime2018,crime2019)
 
-combine_data  <- combine_data %>%
-  group_by(State) %>%
+combine_data  <- combine_data |>
+  group_by(State) |>
   summarise(violent_rate= mean(violent_rate, na.rm = TRUE),
             poverty_rate = mean(poverty_rate,na.rm = TRUE),
             unemploy_rate = mean(unemploy_rate, na.rm =TRUE),
