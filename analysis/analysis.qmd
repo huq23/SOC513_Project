@@ -8,6 +8,7 @@ title: "Research Analysis Notebook"
 library(here)
 source(here("utils","check_packages.R"))
 source(here("utils","functions.R"))
+load(here("data","data_constructed","merged_data.RData"))
 ```
 
 This quarto doc is used to analyze the data.
