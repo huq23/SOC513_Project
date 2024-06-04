@@ -123,18 +123,70 @@ combined_acs <- add_state_abbr(combined_acs)
 
 ```
 
+```{r}
+
+process_acs_data <- function(file_path, year) {
+  
+  acs_data <- read.csv(file_path, skip = 1)
+  
+  acs_data <- acs_data |>
+  rename(pop_over25             = SE_A12001_001,
+         pop_over25_lhs         = SE_A12001_002,
+         pop_over16             = SE_A17005_001,
+         pop_over16_umemploy    =  SE_A17005_003,
+         Avg_income             = SE_A14011_001,
+         families               = SE_A13002_001,
+         families_below_poverty = SE_A13002_002,
+         State                  = Geo_NAME)     |>
+    
+  select(pop_over25, pop_over25_lhs, 
+         pop_over16, pop_over16_umemploy, 
+         Avg_income, families_below_poverty, families, State  )
+
+  
+ acs_data <- acs_data |>
+  group_by(State) |>
+  summarise( pct_lhs            = 100 * (pop_over25_lhs / pop_over25),
+             pct_unemploy       = 100 * (pop_over16_umemploy / pop_over16),
+             pct_below_poverty  = 100 * (families_below_poverty/ families),
+             avg_income         = mean(Avg_income, na.rm = TRUE)
+             )
+ 
+
+  acs_data$year <- year
+  
+  return(acs_data)
+
+  }
+
+acs2017 <- process_acs_data("data/data_raw/ACS/R13682541_SL040.csv", 2017)
+acs2018 <- process_acs_data("data/data_raw/ACS/R13682540_SL040.csv", 2018)
+acs2019 <- process_acs_data("data/data_raw/ACS/R13682536_SL040.csv", 2019)
+
+combined_acs <- bind_rows(acs2017, acs2018, acs2019)
+
+
+
+add_state_abbr <- function(df) {
+  
+  state_map <- setNames(state.abb, tolower(state.name))
+  df$state_abbr <- state_map[tolower(df$State)]
+  
+  return(df)
+ 
+  }
+
+
+combined_acs <- add_state_abbr(combined_acs)
+
+
+
+```
+
+
 
 ```{r}
 merged_data <- merge(crime_data, combined_acs)
-
-merged_data  <- merged_data |>
-  group_by(State) |>
-  summarise(violent       = mean(violent, na.rm = TRUE),
-            poverty_rate  = mean(poverty_rate,na.rm = TRUE),
-            unemploy_rate = mean(unemploy_rate, na.rm =TRUE),
-            lhs           = mean(lhs, na.rm =TRUE),
-            median_income = mean(median_income, na.rm= TRUE))
-
 
 save(merged_data, file = here("data","data_constructed","merged_data.RData"))
 
