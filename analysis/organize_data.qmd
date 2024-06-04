@@ -62,186 +62,38 @@ crime_data <- crime_data |>
 
 
 
+```{r, warning=FALSE, message=FALSE}
 
-```{r}
-acs2017 <- read_xlsx("data/data_raw/ACS/ACS2017.xlsx")
-acs2018 <- read_xlsx("data/data_raw/ACS/ACS2018.xlsx")
-acs2019 <- read_xlsx("data/data_raw/ACS/ACS2019.xlsx")
+# Define a function to process each year's dataset
+process_acs_data <- function(file_path, year) {
+  acs_data <- read_xlsx(file_path)
+  
+  acs_first <- acs_data[, 1]
+  acs_even <- acs_data[, seq(2, ncol(acs_data), by = 2)]
 
+  acs_combined <- cbind(acs_first, acs_even)
+  colnames(acs_combined)[1] <- "states"
+  
+  acs_combined <- acs_combined[c(100, 185, 237, 283), ]
+  
+  transposed_acs <- t(acs_combined)
 
-violent2017<- read_xls("data/data_raw/crime/table_violent2017.xls", skip=3)
-violent2018<- read_xls("data/data_raw/crime/table_violent2018.xls", skip=3)
-violent2019<- read_xls("data/data_raw/crime/table_violent2019.xls", skip=3)
+  acs_df <- as.data.frame(transposed_acs)
+  acs_df$states <- rownames(acs_df)
+  
+  # Clean up the data frame
+  rownames(acs_df) <- NULL
+  colnames(acs_df) <- c("lhs", "unemploy_rate", "median_income", "poverty_rate", "State")
+  acs_df <- acs_df[-1, ]
+  acs_df$year <- year
 
-```
+  acs_df <- convert_columns_to_numeric(acs_df)
+  
+  return(acs_df)
+}
 
-
-```{r}
-# Preparing data for Year 2017
-
-acs2017_first <- acs2017[,1]
-acs2017_even <- acs2017[,seq(2,ncol(acs2017), by =2)]
-acs2017 <- cbind(acs2017_first,acs2017_even)
-colnames(acs2017)[1] <- "states"
-acs2017 <- acs2017[c(100,185,237,283),]
-
-#transpose the dataset
-transposed_acs2017 <- t(acs2017)
-
-#convert the transposed data to a data frame
-acs2017 <- as.data.frame(transposed_acs2017)
-acs2017$states <- rownames(acs2017)
-
-rownames(acs2017) <- NULL
-colnames(acs2017) <- c("lhs", "unemploy_rate", "median_income", "poverty_rate", "State")
-acs2017 <- acs2017[-1,]
-
-violent2017 <- violent2017[-1,]
-
-violent2017 <- fill(violent2017,Area)
-
-violent2017 <- violent2017[rep(1:nrow(violent2017),each =1),]
-
-violent2017 <- violent2017 |>
-  filter(Year ==2017) |>
-  select(Area, Year, ...5) |>
-  rename("State" = "Area", "violent_rate" = "...5") 
-
-
-violent2017 <- violent2017 |>
-  mutate(State =case_when(
-    State == "North Carolina6" ~ "North Carolina",
-    State == "District of Columbia5" ~ "District of Columbia",
-    TRUE ~ State
-  ))
-
-violent2017$violent_rate <-as.character(round(as.numeric(violent2017$violent_rate),2))
-
-# Finally join two datasets for year 2017
-
-crime2017 <- left_join(acs2017, violent2017)
-
-save(crime2017, file = here("data","data_constructed","Crime2017.RData"))
-
-```
-
-
-```{r}
-
-# Preparing data for Year 2018
-
-acs2018_first <- acs2018[,1]
-acs2018_even <- acs2018[,seq(2,ncol(acs2018), by =2)]
-acs2018 <- cbind(acs2018_first,acs2018_even)
-colnames(acs2018)[1] <- "states"
-acs2018 <- acs2018[c(100,185,237,283),]
-
-#transpose the dataset
-transposed_acs2018 <- t(acs2018)
-
-#convert the transposed data to a data frame
-acs2018 <- as.data.frame(transposed_acs2018)
-acs2018$states <- rownames(acs2018)
-
-rownames(acs2018) <- NULL
-colnames(acs2018) <- c("lhs", "unemploy_rate", "median_income", "poverty_rate", "State")
-acs2018 <- acs2018[-1,]
-
-violent2018 <- violent2018[-1,]
-
-violent2018 <- fill(violent2018,Area)
-
-violent2018 <- violent2018[rep(1:nrow(violent2018),each =1),]
-
-violent2018 <- violent2018 |>
-  filter(Year ==2018) |>
-  select(Area, Year, ...5) |>
-  rename("State" = "Area", "violent_rate" = "...5") 
-
-
-violent2018 <- violent2018 |>
-  mutate(State =case_when(
-    State == "North Carolina7" ~ "North Carolina",
-    State == "District of Columbia6" ~ "District of Columbia",
-    State == "Iowa5" ~ "Iowa",
-    TRUE ~ State
-  ))
-
-violent2018$violent_rate <-as.character(round(as.numeric(violent2017$violent_rate),2))
-
-# Finally join two datasets for year 2018
-
-crime2018 <- left_join(acs2018, violent2018)
-
-save(crime2018, file = here("data","data_constructed","Crime2018.RData"))
-
-```
-
-
-```{r}
-
-# Preparing data for Year 2019
-
-acs2019_first <- acs2019[,1]
-acs2019_even <- acs2019[,seq(2,ncol(acs2019), by =2)]
-acs2019 <- cbind(acs2019_first,acs2019_even)
-colnames(acs2019)[1] <- "states"
-acs2019 <- acs2019[c(100,185,237,283),]
-
-#transpose the dataset
-transposed_acs2019 <- t(acs2019)
-
-#convert the transposed data to a data frame
-acs2019 <- as.data.frame(transposed_acs2019)
-acs2019$states <- rownames(acs2019)
-
-rownames(acs2019) <- NULL
-colnames(acs2019) <- c("lhs", "unemploy_rate", "median_income", "poverty_rate", "State")
-acs2019 <- acs2019[-1,]
-
-violent2019 <- violent2019[-1,]
-
-violent2019 <- fill(violent2019,Area)
-
-violent2019 <- violent2019[rep(1:nrow(violent2019),each =1),]
-
-violent2019 <- violent2019 |>
-  filter(Year ==2019) |>
-  select(Area, Year, ...5) |>
-  rename("State" = "Area", "violent_rate" = "...5") 
-
-
-violent2019 <- violent2019 |>
-  mutate(State =case_when(
-    State == "North Carolina7" ~ "North Carolina",
-    State == "District of Columbia6" ~ "District of Columbia",
-    State == "Iowa5" ~ "Iowa",
-    TRUE ~ State
-  ))
-
-violent2019$violent_rate <-as.character(round(as.numeric(violent2019$violent_rate),2))
-
-# Finally join two datasets for year 2019
-
-crime2019 <- left_join(acs2019, violent2019)
-
-save(crime2019, file = here("data","data_constructed","Crime2019.RData"))
-
-```
-
-```{r}
-load(here("data","data_constructed","Crime2017.RData"))
-load(here("data","data_constructed","Crime2018.RData"))
-load(here("data","data_constructed","Crime2019.RData"))
-
-```
-
-```{r}
-#combine three years data
-
-# First converting the columns to numeric values
+# Function to convert relevant columns to numeric
 convert_columns_to_numeric <- function(df) {
-  df$violent_rate <- as.numeric(gsub("[^0-9.]", "", as.character(df$violent_rate)))
   df$median_income <- as.numeric(gsub("[^0-9.]", "", as.character(df$median_income)))
   df$unemploy_rate <- as.numeric(gsub("%", "", as.character(df$unemploy_rate)))
   df$poverty_rate <- as.numeric(gsub("%", "", as.character(df$poverty_rate)))
@@ -249,24 +101,48 @@ convert_columns_to_numeric <- function(df) {
   return(df)
 }
 
-# Applying the function to the datasets
-crime2017 <- convert_columns_to_numeric(crime2017)
-crime2018 <- convert_columns_to_numeric(crime2018)
-crime2019 <- convert_columns_to_numeric(crime2019)
 
-# Combine the three datasets
-combine_data <- bind_rows(crime2017,crime2018,crime2019)
+acs2017 <- process_acs_data("data/data_raw/ACS/ACS2017.xlsx", 2017)
+acs2018 <- process_acs_data("data/data_raw/ACS/ACS2018.xlsx", 2018)
+acs2019 <- process_acs_data("data/data_raw/ACS/ACS2019.xlsx", 2019)
 
-combine_data  <- combine_data |>
+
+combined_acs <- bind_rows(acs2017, acs2018, acs2019)
+
+
+# Define a function to add state abbreviations based on state names
+add_state_abbr <- function(df) {
+  state_map <- setNames(state.abb, tolower(state.name))
+  df$state_abbr <- state_map[tolower(df$State)]
+  
+  return(df)
+}
+
+combined_acs <- add_state_abbr(combined_acs)
+
+
+```
+
+
+```{r}
+merged_data <- merge(crime_data, combined_acs)
+
+merged_data  <- merged_data |>
   group_by(State) |>
-  summarise(violent_rate= mean(violent_rate, na.rm = TRUE),
-            poverty_rate = mean(poverty_rate,na.rm = TRUE),
+  summarise(violent       = mean(violent, na.rm = TRUE),
+            poverty_rate  = mean(poverty_rate,na.rm = TRUE),
             unemploy_rate = mean(unemploy_rate, na.rm =TRUE),
             lhs           = mean(lhs, na.rm =TRUE),
             median_income = mean(median_income, na.rm= TRUE))
 
 
-save(combine_data, file = here("data","data_constructed","combine_data.RData"))
+save(merged_data, file = here("data","data_constructed","merged_data.RData"))
 
-load(here("data","data_constructed","combine_data.RData"))
+load(here("data","data_constructed","merged_data.RData"))
+
 ```
+
+
+
+
+
