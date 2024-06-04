@@ -11,3 +11,78 @@ source(here("utils","functions.R"))
 ```
 
 This quarto doc is used to analyze the data.
+
+
+```{r}
+#| label: fig-1
+#| fig-cap: Shows the distribution violent crime rate across the United States 
+
+ggplot(merged_data, aes(x=violent)) +
+  geom_histogram(binwidth = 20, col = "black") +
+  labs(x = "Violent Crime rate per 100,000 population") +
+  theme_bw()
+
+```
+
+```{r}
+#| label: fig-2
+#| fig-cap: Shows the distribution violent crime rate across the United States 
+
+ggplot(merged_data, aes(x=pct_below_poverty)) +
+  geom_histogram(binwidth = 1, col = "black") +
+  labs(x = "Percentage of people below poverty line") +
+  theme_bw()
+
+```
+
+```{r}
+#| label: fig-3
+#| fig-cap: Shows a scatterplot of the relationship between percentacage of below poverty and violent crime rate accross the US
+
+ggplot(merged_data, aes(x=pct_below_poverty, y=violent)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se =FALSE) +
+  labs(x = "Poverty rate", y = "Violent crime rate") +
+  theme_bw()
+
+```
+
+
+
+```{r}
+#| label: tbl-1
+#| tbl-cap: Model predicting the violent crime rate accross the US
+#| results: asis
+
+model1 <- lm(violent ~ pct_below_poverty , data = merged_data)
+model2 <- update(model1, .~.+pct_unemploy)
+model3 <- update(model2, .~.+pct_lhs)
+
+
+knitreg(list(model1, model2, model3))
+
+```
+
+
+```{r}
+#| label: fig-4
+#| fig-cap: Shows a scatterplot of the relationship between log percentacage of below poverty and log violent crime rate accross the US
+
+ggplot(merged_data, aes(x=log(pct_below_poverty), y= log(violent))) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se =FALSE) +
+  labs(x = "log Poverty rate", y = "log Violent crime rate") +
+  theme_bw()
+
+```
+
+
+```{r}
+#| label: tbl-2
+#| tbl-cap: Model predicting the log violent crime rate accross the US
+#| results: asis
+model <- lm(log(violent) ~ log(pct_below_poverty) , data = merged_data)
+# Display the regression results
+knitreg(list(model))
+
+```
