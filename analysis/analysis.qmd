@@ -24,6 +24,8 @@ ggplot(merged_data, aes(x=violent)) +
   theme_bw()
 
 ```
+The histogram in @fig-1 illustrates the distribution of violent crime rate from 2017 to 2019 in the United States. The distribution is skewed to the right, with the majority of areas having violent crime rates less than 500 per 100,000 population.  
+
 
 ```{r}
 #| label: fig-2
@@ -35,8 +37,10 @@ ggplot(merged_data, aes(x=pct_below_poverty)) +
   theme_bw()
 
 ```
+The histogram in @fig-2 shows the distribution of percentage of people below poverty line  from 2017 to 2019 in the United States. The distribution is skewed to the right, with the majority of areas having percentage of people below poverty line between 5% and 12%.   
 
-```{r}
+
+```{r, warning=FALSE, message=FALSE}
 #| label: fig-3
 #| fig-cap: Shows a scatterplot of the relationship between percentacage of below poverty and violent crime rate accross the US
 
@@ -47,43 +51,32 @@ ggplot(merged_data, aes(x=pct_below_poverty, y=violent)) +
   theme_bw()
 
 ```
+The scatterplot in @fig-3 illustrates the relationship between the poverty rate and violent crime rate in the United States from 2017 to 2019. The blue line depicts the best-fit Ordinary Least Squares (OLS) regression line, showing how the variables are related. This line suggests a positive correlation, indicating that as the poverty rate increases, the violent crime rate also tends to rise.  
 
 
-
-```{r}
+```{r, warning=FALSE,message=FALSE}
 #| label: tbl-1
 #| tbl-cap: Model predicting the violent crime rate accross the US
 #| results: asis
-
+library(modelsummary)
 model1 <- lm(violent ~ pct_below_poverty , data = merged_data)
 model2 <- update(model1, .~.+pct_unemploy)
 model3 <- update(model2, .~.+pct_lhs)
 
 
-knitreg(list(model1, model2, model3))
+
+modelsummary(list(model1,model2,model3), 
+             output = "gt",
+             stars = c("*" = 0.05, "**"= 0.01, "***" =0.001),
+             gof_map = c("nobs", "r.squared"),
+             coef_map = c("(Intercept)"       = "Intercept",
+                          "pct_below_poverty" = "Poverty rate",
+                          "pct_unemploy"      = "Unemployment",
+                          "pct_lhs"           = "Percentage of less than high school deploma"
+                          ))
 
 ```
 
 
-```{r}
-#| label: fig-4
-#| fig-cap: Shows a scatterplot of the relationship between log percentacage of below poverty and log violent crime rate accross the US
-
-ggplot(merged_data, aes(x=log(pct_below_poverty), y= log(violent))) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(method = "lm", se =FALSE) +
-  labs(x = "log Poverty rate", y = "log Violent crime rate") +
-  theme_bw()
-
-```
 
 
-```{r}
-#| label: tbl-2
-#| tbl-cap: Model predicting the log violent crime rate accross the US
-#| results: asis
-model <- lm(log(violent) ~ log(pct_below_poverty) , data = merged_data)
-# Display the regression results
-knitreg(list(model))
-
-```
