@@ -133,7 +133,7 @@ Cluster-robust standard errors are used in @tbl-2 to address potential correlati
 
 ```{r, warning=FALSE, message=FALSE}
 #| label: tbl-2
-#| tbl-cap: Model predicting the violent crime rate accross the US
+#| tbl-cap: Model predicting the violent crime rate accross the US (with cluster-robust standard errors)
 #| results: asis
 library(lmtest)
 library(sandwich)
