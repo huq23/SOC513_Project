@@ -28,16 +28,159 @@ format:
 library(here)
 source(here("utils","check_packages.R"))
 source(here("utils","functions.R"))
+load(here("data","data_constructed","merged_data.RData"))
 ```
 
 # Introduction
 
-This quarto doc is for writing the manuscript. This is a test citation [@alba1990].
+In contemporary society, understanding the intricate relationship between socioeconomic factors and crime rates is of paramount importance for policymakers, law enforcement agencies, and scholars alike. Among the myriad of socioeconomic indicators, poverty rate stands out as a critical factor often associated with increased crime rates, particularly violent crimes. The United States, a nation characterized by its diversity and economic disparities, offers a compelling backdrop for investigating the nuanced dynamics between poverty and crime.
 
-# Background
+While poverty has long been acknowledged as a potential catalyst for crime, the precise mechanisms underlying this relationship remain a subject of scholarly debate. Exploring this relationship necessitates a comprehensive examination of various socioeconomic factors that interplay with poverty and may exacerbate or mitigate its impact on crime rates. Key among these factors are unemployment rate, median income, and educational attainment, particularly high school diploma rates. These variables, collectively, provide a nuanced understanding of the socioeconomic context within which poverty manifests and its implications for crime.
+
+Research studies conducted in the past have yielded mixed findings regarding the relationship between poverty and crime. Some scholars [@Quednau2021] argue that poverty serves as a breeding ground for criminal activities, as individuals facing economic deprivation may resort to illegal means to meet their basic needs or to achieve socioeconomic mobility. Others [@Hsieh1993; @Stretesky2004; @Patel2017] contend that poverty alone does not necessarily lead to crime, but rather, it interacts with other socio-demographic and environmental factors, including poverty clustering, education, and income inequality, to influence criminal behavior. However, to comprehensively understand the intricate dynamics between poverty and crime, it is imperative to consider the role of additional socioeconomic factors that shape the context within which poverty manifests and its implications for crime rates.
+
+Moreover, the significance of control variables such as unemployment rate, median income, and high school diploma rate cannot be overstated in elucidating the complex relationship between poverty and crime. Unemployment, for instance, may exacerbate the adverse effects of poverty by limiting individuals' access to legitimate employment opportunities, thereby increasing the likelihood of engaging in criminal activities. Similarly, lower median income levels may contribute to heightened financial strain and economic vulnerability, further amplifying the propensity for criminal behavior. Furthermore, educational attainment, as indicated by high school diploma rates, serves as a crucial determinant of socioeconomic status, and may mediate the relationship between poverty and crime by shaping individuals' opportunities, aspirations, and social capital. By considering these control variables alongside poverty rate, a more comprehensive understanding of the socioeconomic context and its influence on violent crime rates in the United States can be attained.
+
+With all the above being considered, this research endeavors to investigate the extent to which poverty rate triggers violent crime rate in the United States, while accounting for the moderating effects of unemployment rate, median income, and high school diploma rate. By employing a rigorous empirical approach and leveraging comprehensive datasets, this study aims to shed light on the nuanced dynamics underlying the relationship between poverty and crime, thereby informing evidence-based policy interventions and strategies aimed at addressing socioeconomic disparities and curbing violent crime rates in the US.
+
+
 
 # Data and Methods
 
+For the detailed analysis, data from two primary sources is used to construct an analytical dataset. this paper focusing on three years analyis from 2017 to 2019. Initially, acs data from Social Explorer was collected, covering the entire US and based on American Community Survey (ACS) data from 2014-2018. The ACS is an annual 1% survey conducted by the US Census Bureau, gathering various demographic information. From the ACS data for any particular year from 2017 to 2019, I picked the variables including states, population over 25, population over 25 having less than high school diploma, population over 16, population over 16 with no employment, number of families, number of families below poverty, and avergage household income. After selecting those variables, I have firstly calculated poverty rate in percentage by dividing the numbers of families below poverty by number of families and multiplying the result by 100. Secondly, I have calculated percentage of population having below high school degree by dividing population over 25 having less than high school diploma by population over 25 and multiplying the result by 100. Thirdly, I have calculated the unemployment rate by dividing population over 16 with no employment by population over 16 and multiplying the result by 100. 
+
+Crime data comes from the FBI's Uniform Crime Reports and includes information on crime rates and demographic variables for all fifty US states and the District of Columbia. For this study, data were collected for the years 2017, 2018, and 2019, with state, violent crime rate, and property crime rate being selected. Both the violent crime rate and property crime rate are calculated per 100,000 population for each state. Violent crimes include murder, rape, robbery, and aggravated assault, while property crimes encompass burglary, larceny, and motor vehicle theft. By dividing the number of crimes by the population size, the issue of states with larger populations appearing to have more crime due to their size is mitigated.
+
+Finally, the acs data and crime data are merged, resulting in the creation of merged data, which is the final working data set for this report.
+
+To investigate the relationship between violent crime rates and socioeconomic factors, three linear regression models have been estimated. These models have incorporated variables such as poverty rate, unemployment rate, and the percentage of the population without a high school diploma to understand their collective impact on violent crime rates. Recognizing the potential correlation of observations within states over the three-year period, cluster-robust standard errors were applied to the models.This method ensures more reliable inference, underscoring the critical impact of socioeconomic factors on violent crime rates while enhancing the robustness of the statistical analysis.
+
+
+
+
+
 # Results
+
+```{r}
+#| label: fig-1
+#| fig-cap: Shows the distribution violent crime rate across the United States 
+
+ggplot(merged_data, aes(x=violent)) +
+  geom_histogram(binwidth = 20, col = "black") +
+  labs(x = "Violent Crime rate per 100,000 population") +
+  theme_bw()
+
+```
+
+The histogram in @fig-1 illustrates the distribution of violent crime rate from 2017 to 2019 in the United States. The distribution is skewed to the right, with the majority of areas having violent crime rates less than 500 per 100,000 population.  
+
+
+```{r}
+#| label: fig-2
+#| fig-cap: Shows the distribution violent crime rate across the United States 
+
+ggplot(merged_data, aes(x=pct_below_poverty)) +
+  geom_histogram(binwidth = 1, col = "black") +
+  labs(x = "Percentage of people below poverty line") +
+  theme_bw()
+```
+
+The histogram in @fig-2 shows the distribution of percentage of people below poverty line  from 2017 to 2019 in the United States. The distribution is skewed to the right, with the majority of areas having percentage of people below poverty line between 5% and 12%.   
+
+
+```{r, warning=FALSE, message=FALSE}
+#| label: fig-3
+#| fig-cap: Shows a scatterplot of the relationship between percentacage of below poverty and violent crime rate accross the US
+
+ggplot(merged_data, aes(x=pct_below_poverty, y=violent)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se =FALSE) +
+  labs(x = "Poverty rate", y = "Violent crime rate") +
+  theme_bw()
+
+```
+
+The scatterplot in @fig-3 illustrates the relationship between the poverty rate and violent crime rate in the United States from 2017 to 2019. The blue line depicts the best-fit Ordinary Least Squares (OLS) regression line, showing how the variables are related. This line suggests a positive correlation, indicating that as the poverty rate increases, the violent crime rate also tends to rise.  
+
+
+```{r, warning=FALSE,message=FALSE}
+#| label: tbl-1
+#| tbl-cap: Model predicting the violent crime rate accross the US
+#| results: asis
+library(modelsummary)
+model1 <- lm(violent ~ pct_below_poverty , data = merged_data)
+model2 <- update(model1, .~.+pct_unemploy)
+model3 <- update(model2, .~.+pct_lhs)
+
+
+
+modelsummary(list(model1,model2,model3), 
+             output = "gt",
+             stars = c("*" = 0.05, "**"= 0.01, "***" =0.001),
+             gof_map = c("nobs", "r.squared"),
+             coef_map = c("(Intercept)"       = "Intercept",
+                          "pct_below_poverty" = "Poverty rate",
+                          "pct_unemploy"      = "Unemployment",
+                          "pct_lhs"           = "Percentage of less than high school diploma"
+                          ))
+
+```
+
+
+In @tbl-1 three linear models with violent crime rate as dependent variable and three independent variables are reported.
+In **Model 1**,there is a strong positive correlation between the poverty rate and the violent crime rate. The coefficient 28 suggests that a one percentage point increase in the poverty rate is associated with an average increase of 28 violent crimes per 100,000 people. This finding aligns with the observations depicted in @fig-3, which shows a positive association between poverty and violent crime rates.
+
+In **Model 2**, the positive association between the poverty rate and violent crime rate diminishes slightly, as indicated by the coefficient 15. This suggests that a one percentage point increase in the poverty rate is associated with an average increase of 15 violent crimes per 100,000 people. Additionally, the coefficient 47 for the unemployment rate indicates a significant impact, predicting that among states with the same poverty rate, a one percentage point increase in the unemployment rate is associated with an average increase of 47 violent crimes per 100,000 people. This highlights the considerable influence of unemployment on violent crime rates, suggesting that both poverty and unemployment contribute to higher violent crime rates.
+
+**Model 3** includes the percentage of the population without a high school diploma as an additional control variable. The coefficient 18 for the poverty rate indicates that its impact on the violent crime rate slightly strengthens compared to Model 2, with a one percentage point increase in the poverty rate associated with an average increase of 18 violent crimes per 100,000 people. The coefficient for the unemployment rate increases to 50, indicating its continued significant impact on violent crime rates. Interestingly, the coefficient -4 for the percentage of the population without a high school diploma suggests a small negative relationship, predicting that among states with the same poverty and unemployment rates, a one percentage point increase in the percentage of the population without a high school diploma is associated with an average decrease of 4 violent crimes per 100,000 people.
+
+
+The results across all three models consistently show that the poverty rate has a significant positive association with violent crime rates, underscoring the critical role of economic hardship in driving violent crime. The substantial coefficients for the unemployment rate, particularly highlighted by the increase to 50 in Model 3, emphasize the importance of employment in mitigating violent crime. Higher unemployment rates exacerbate economic stress, leading to increased violent crime rates. Furthermore, the inclusion of the percentage of the population without a high school diploma in Model 3 reveals a complex relationship between education and violent crime. Although lower education levels are generally associated with higher crime rates, the small negative coefficient suggests that other mediating factors, such as community support or crime prevention programs, might influence violent crime rates. These findings highlight the multifaceted nature of violent crime and suggest that policies aimed at reducing poverty and unemployment could effectively lower violent crime rates. Additionally, further exploration into the role of education and other socio-economic factors could provide deeper insights into comprehensive crime reduction strategies. By understanding these relationships, policymakers can design more targeted interventions to address the root causes of violent crime and promote safer communities.
+
+
+Cluster-robust standard errors are used in @tbl-2 to address potential correlations among observations within states over the three-year period. This adjustment ensures that the standard errors appropriately reflect the interdependence of data points from the same state, enhancing the reliability of the statistical analysis.
+
+
+```{r, warning=FALSE, message=FALSE}
+
+#| label: tbl-2
+#| tbl-cap: Model predicting the violent crime rate accross the US
+#| results: asis
+# Load necessary packages
+library(lmtest)
+library(sandwich)
+
+
+# Define a function to calculate cluster-robust standard errors
+cluster_se <- function(model, cluster) {
+  vcovCL(model, cluster = cluster)
+}
+
+
+cluster_se_model1 <- cluster_se(model1, merged_data$State)
+cluster_se_model2 <- cluster_se(model2, merged_data$State)
+cluster_se_model3 <- cluster_se(model3, merged_data$State)
+
+
+modelsummary(list(model1, model2, model3),
+             output   = "gt",
+             vcov     = list(cluster_se_model1, cluster_se_model2, cluster_se_model3),
+             stars    = c("*" = 0.05, "**"= 0.01, "***" =0.001),
+             gof_map  = c("nobs", "r.squared"),
+             coef_map = c("(Intercept)"       = "Intercept",
+                          "pct_below_poverty" = "Poverty rate",
+                          "pct_unemploy"      = "Unemployment",
+                          "pct_lhs"           = "Percentage of less than high school diploma"
+                          )
+            )
+
+```
+
+Using cluster-robust standard errors led to larger standard errors compared to the conventional IID approach in @tbl-1. This adjustment provides a more accurate measure of uncertainty by effectively addressing within-state correlations, which are crucial in analyzing data where observations within the same state may be interdependent. Consequently, some coefficients that initially showed significance under the IID assumption lost their statistical significance. This underscores the necessity of accounting for within-state correlation to ensure robust and reliable results in the analysis of relationships such as the impact of socioeconomic factors on violent crime rates over a three-year period.
+
+Despite the increased standard errors, the primary relationships identified in the models remain consistent. The positive association between poverty rate and violent crime rate, for example, is still present, albeit with lower precision. These findings underscore the critical impact of socioeconomic factors on violent crime rates while providing a more reliable inference by accounting for within-state correlations.
+
+
+
 
 # Conclusions
