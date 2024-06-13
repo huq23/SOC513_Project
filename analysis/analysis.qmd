@@ -72,11 +72,63 @@ modelsummary(list(model1,model2,model3),
              coef_map = c("(Intercept)"       = "Intercept",
                           "pct_below_poverty" = "Poverty rate",
                           "pct_unemploy"      = "Unemployment",
-                          "pct_lhs"           = "Percentage of less than high school deploma"
+                          "pct_lhs"           = "Percentage of less than high school diploma"
                           ))
 
 ```
 
 
+In @tbl-1 three linear models with violent crime rate as dependent variable and three independent variables are reported.
+In **Model 1**,there is a strong positive correlation between the poverty rate and the violent crime rate. The coefficient 28 suggests that a one percentage point increase in the poverty rate is associated with an average increase of 28 violent crimes per 100,000 people. This finding aligns with the observations depicted in @fig-3, which shows a positive association between poverty and violent crime rates.
 
+In **Model 2**, the positive association between the poverty rate and violent crime rate diminishes slightly, as indicated by the coefficient 15. This suggests that a one percentage point increase in the poverty rate is associated with an average increase of 15 violent crimes per 100,000 people. Additionally, the coefficient 47 for the unemployment rate indicates a significant impact, predicting that among states with the same poverty rate, a one percentage point increase in the unemployment rate is associated with an average increase of 47 violent crimes per 100,000 people. This highlights the considerable influence of unemployment on violent crime rates, suggesting that both poverty and unemployment contribute to higher violent crime rates.
+
+**Model 3** includes the percentage of the population without a high school diploma as an additional control variable. The coefficient 18 for the poverty rate indicates that its impact on the violent crime rate slightly strengthens compared to Model 2, with a one percentage point increase in the poverty rate associated with an average increase of 18 violent crimes per 100,000 people. The coefficient for the unemployment rate increases to 50, indicating its continued significant impact on violent crime rates. Interestingly, the coefficient -4 for the percentage of the population without a high school diploma suggests a small negative relationship, predicting that among states with the same poverty and unemployment rates, a one percentage point increase in the percentage of the population without a high school diploma is associated with an average decrease of 4 violent crimes per 100,000 people.
+
+
+The results across all three models consistently show that the poverty rate has a significant positive association with violent crime rates, underscoring the critical role of economic hardship in driving violent crime. The substantial coefficients for the unemployment rate, particularly highlighted by the increase to 50 in Model 3, emphasize the importance of employment in mitigating violent crime. Higher unemployment rates exacerbate economic stress, leading to increased violent crime rates. Furthermore, the inclusion of the percentage of the population without a high school diploma in Model 3 reveals a complex relationship between education and violent crime. Although lower education levels are generally associated with higher crime rates, the small negative coefficient suggests that other mediating factors, such as community support or crime prevention programs, might influence violent crime rates. These findings highlight the multifaceted nature of violent crime and suggest that policies aimed at reducing poverty and unemployment could effectively lower violent crime rates. Additionally, further exploration into the role of education and other socio-economic factors could provide deeper insights into comprehensive crime reduction strategies. By understanding these relationships, policymakers can design more targeted interventions to address the root causes of violent crime and promote safer communities.
+
+
+Cluster-robust standard errors are used in @tbl-2 to address potential correlations among observations within states over the three-year period. This adjustment ensures that the standard errors appropriately reflect the interdependence of data points from the same state, enhancing the reliability of the statistical analysis.
+
+```{r}
+
+#| label: tbl-2
+#| tbl-cap: Model predicting the violent crime rate accross the US
+#| results: asis
+# Load necessary packages
+library(lmtest)
+library(sandwich)
+
+
+# Define a function to calculate cluster-robust standard errors
+cluster_se <- function(model, cluster) {
+  vcovCL(model, cluster = cluster)
+}
+
+
+cluster_se_model1 <- cluster_se(model1, merged_data$State)
+cluster_se_model2 <- cluster_se(model2, merged_data$State)
+cluster_se_model3 <- cluster_se(model3, merged_data$State)
+
+
+modelsummary(list(model1, model2, model3),
+             output   = "gt",
+             vcov     = list(cluster_se_model1, cluster_se_model2, cluster_se_model3),
+             stars    = c("*" = 0.05, "**"= 0.01, "***" =0.001),
+             gof_map  = c("nobs", "r.squared"),
+             coef_map = c("(Intercept)"       = "Intercept",
+                          "pct_below_poverty" = "Poverty rate",
+                          "pct_unemploy"      = "Unemployment",
+                          "pct_lhs"           = "Percentage of less than high school diploma"
+                          )
+            )
+
+```
+
+
+
+Using cluster-robust standard errors led to larger standard errors compared to the conventional IID approach in @tbl-1. This adjustment provides a more accurate measure of uncertainty by effectively addressing within-state correlations, which are crucial in analyzing data where observations within the same state may be interdependent. Consequently, some coefficients that initially showed significance under the IID assumption lost their statistical significance. This underscores the necessity of accounting for within-state correlation to ensure robust and reliable results in the analysis of relationships such as the impact of socioeconomic factors on violent crime rates over a three-year period.
+
+Despite the increased standard errors, the primary relationships identified in the models remain consistent. The positive association between poverty rate and violent crime rate, for example, is still present, albeit with lower precision. These findings underscore the critical impact of socioeconomic factors on violent crime rates while providing a more reliable inference by accounting for within-state correlations.
 
