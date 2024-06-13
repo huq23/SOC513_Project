@@ -60,7 +60,6 @@ To investigate the relationship between violent crime rates and socioeconomic fa
 ```{r}
 #| label: fig-1
 #| fig-cap: Shows the distribution violent crime rate across the United States 
-
 ggplot(merged_data, aes(x=violent)) +
   geom_histogram(binwidth = 20, col = "black") +
   labs(x = "Violent Crime rate per 100,000 population") +
@@ -74,7 +73,6 @@ The histogram in @fig-1 illustrates the distribution of violent crime rate from 
 ```{r}
 #| label: fig-2
 #| fig-cap: Shows the distribution violent crime rate across the United States 
-
 ggplot(merged_data, aes(x=pct_below_poverty)) +
   geom_histogram(binwidth = 1, col = "black") +
   labs(x = "Percentage of people below poverty line") +
@@ -86,7 +84,6 @@ The histogram in @fig-2 shows the distribution of percentage of people below pov
 ```{r, warning=FALSE, message=FALSE}
 #| label: fig-3
 #| fig-cap: Shows a scatterplot of the relationship between percentacage of below poverty and violent crime rate accross the US
-
 ggplot(merged_data, aes(x=pct_below_poverty, y=violent)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm", se =FALSE) +
@@ -105,8 +102,6 @@ library(modelsummary)
 model1 <- lm(violent ~ pct_below_poverty , data = merged_data)
 model2 <- update(model1, .~.+pct_unemploy)
 model3 <- update(model2, .~.+pct_lhs)
-
-
 
 modelsummary(list(model1,model2,model3), 
              output = "gt",
@@ -137,12 +132,9 @@ Cluster-robust standard errors are used in @tbl-2 to address potential correlati
 #| results: asis
 library(lmtest)
 library(sandwich)
-
-# Define a function to calculate cluster-robust standard errors
 cluster_se <- function(model, cluster) {
   vcovCL(model, cluster = cluster)
 }
-
 cluster_se_model1 <- cluster_se(model1, merged_data$State)
 cluster_se_model2 <- cluster_se(model2, merged_data$State)
 cluster_se_model3 <- cluster_se(model3, merged_data$State)
